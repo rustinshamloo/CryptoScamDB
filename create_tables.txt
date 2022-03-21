@@ -1,0 +1,30 @@
+--create database crypto_scam_db;
+--use database crypto_scam_db;
+
+drop table if exists abuses;
+drop table if exists users;
+drop table if exists abuse_wallets;
+drop table if exists abuse_tokens;
+drop table if exists abuse_smart_contract;
+drop table if exists abuse_websites;
+drop table if exists blockchains;
+drop table if exists wallets;
+drop table if exists tokens;
+drop table if exists smart_contracts;
+drop table if exists websites;
+drop table if exists abuse_types;
+drop table if exists known_scams;
+
+create table abuses (abuse_id INT PRIMARY KEY, report_date DATE, abuse_type_id INT, user_id INT, abuser_name VARCHAR(100), abuse_comment VARCHAR(10000));
+create table users (user_id INT PRIMARY KEY, user_name VARCHAR(150), email VARCHAR(150), join_date DATE, approved BOOL, notes VARCHAR(500), role VARCHAR(20));
+create table abuse_wallets (abuse_id INT, wallet_id INT, PRIMARY KEY (abuse_id, wallet_id));
+create table abuse_tokens (abuse_id INT, token_id INT, PRIMARY KEY (abuse_id, token_id));
+create table abuse_smart_contract (abuse_id INT, smart_contract_id INT, PRIMARY KEY (abuse_id, smart_contract_id));
+create table abuse_websites (abuse_id INT, website_url VARCHAR(200), PRIMARY KEY (abuse_id, website_url));
+create table blockchains (blockchain_id INT PRIMARY KEY, blockchain_full_name VARCHAR(100), blockchain_short_name VARCHAR(50), website VARCHAR(200), block_explorer_site VARCHAR(200));
+create table wallets (wallet_id INT PRIMARY_KEY, wallet_address VARCHAR(200), blockchain_id INT, possible_owner_name VARCHAR(200), UNIQUE(wallet_address, blockchain_id));
+create table tokens (token_id INT PRIMARY_KEY, token_address VARCHAR(200), blockchain_id INT, token_creator VARCHAR(100), token_description VARCHAR(1000), UNIQUE(token_address, blockchain_id));
+create table smart_contracts (smart_contract_id INT PRIMARY KEY, smart_contract_address VARCHAR(200), blockchain_id INT, smart_contract_creator VARCHAR(100), smart_contract_description VARCHAR(1000), UNIQUE(smart_contract_address, blockchain_id));
+create table websites (website_url VARCHAR(200) PRIMARY KEY, websites_creator VARCHAR(100), websites_description VARCHAR(1000));
+create table abuse_types (abuse_type_id INT PRIMARY_KEY, abuse_title VARCHAR(100), abuse_description VARCHAR(1000));
+create table known_scams (scam_id INT PRIMARY_KEY, scam_name VARCHAR(100), scam_description VARCHAR(1000));
