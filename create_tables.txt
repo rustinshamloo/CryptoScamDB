@@ -1,46 +1,48 @@
 --CREATE database crypto_scam_db;
---use database crypto_scam_db;
+--use crypto_scam_db;
 
+DROP TABLE IF EXISTS abuse_websites;
+DROP TABLE IF EXISTS abuse_tokens;
+DROP TABLE IF EXISTS abuse_wallets;
+DROP TABLE IF EXISTS abuse_smart_contract;
 DROP TABLE IF EXISTS abuses;
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS abuse_wallets;
-DROP TABLE IF EXISTS abuse_tokens;
-DROP TABLE IF EXISTS abuse_smart_contract;
-DROP TABLE IF EXISTS abuse_websites;
-DROP TABLE IF EXISTS blockchains;
-DROP TABLE IF EXISTS wallets;
-DROP TABLE IF EXISTS tokens;
 DROP TABLE IF EXISTS smart_contracts;
-DROP TABLE IF EXISTS websites;
+DROP TABLE IF EXISTS tokens;
+DROP TABLE IF EXISTS wallets;
+DROP TABLE IF EXISTS blockchains;
 DROP TABLE IF EXISTS abuse_types;
-DROP TABLE IF EXISTS known_scams;
+DROP TABLE IF EXISTS large_scams;
+DROP TABLE IF EXISTS websites;
 
 CREATE TABLE websites (website_url VARCHAR(200) PRIMARY KEY, websites_type VARCHAR(50), websites_creator VARCHAR(100), websites_description VARCHAR(1000));
-CREATE TABLE abuse_types (abuse_type_id INT PRIMARY_KEY, abuse_title VARCHAR(100), abuse_description VARCHAR(1000));
-CREATE TABLE large_scams (scam_id INT PRIMARY_KEY, scam_name VARCHAR(100), scam_description VARCHAR(1000));
-CREATE TABLE blockchains (blockchain_id INT PRIMARY KEY, blockchain_full_name VARCHAR(100), blockchain_short_name VARCHAR(50), blockchain_website_url VARCHAR(200), block_explorer_website VARCHAR(200)
-FOREIGN KEY(blockchain_website_url) REFERANCES websites(website_url) ON DELETE SET NULL ON UPDATE CASCADE, 
-FOREIGN KEY(block_explorer_website) REFERANCES websites(website_url) ON DELETE SET NULL ON UPDATE CASCADE);
-CREATE TABLE wallets (wallet_id INT PRIMARY_KEY, wallet_address VARCHAR(200), blockchain_id INT, possible_owner_name VARCHAR(200), UNIQUE(wallet_address, blockchain_id)
-FOREIGN KEY(blockchain_id) REFERANCES blockchains(blockchain_id) ON DELETE SET NULL ON UPDATE CASCADE);
-CREATE TABLE tokens (token_id INT PRIMARY_KEY, token_address VARCHAR(200), blockchain_id INT, token_creator VARCHAR(100), token_description VARCHAR(1000), UNIQUE(token_address, blockchain_id)
-FOREIGN KEY(blockchain_id) REFERANCES blockchains(blockchain_id) ON DELETE SET NULL ON UPDATE CASCADE);
-CREATE TABLE smart_contracts (smart_contract_id INT PRIMARY KEY, smart_contract_address VARCHAR(200), blockchain_id INT, smart_contract_creator VARCHAR(100), smart_contract_description VARCHAR(1000), UNIQUE(smart_contract_address, blockchain_id)
-FOREIGN KEY(blockchain_id) REFERANCES blockchains(blockchain_id) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE large_scams (scam_id INT PRIMARY KEY, scam_name VARCHAR(100), scam_description VARCHAR(1000));
+CREATE TABLE abuse_types (abuse_type_id INT PRIMARY KEY, abuse_title VARCHAR(100), abuse_description VARCHAR(1000));
+CREATE TABLE blockchains (blockchain_id INT PRIMARY KEY, blockchain_full_name VARCHAR(100), blockchain_short_name VARCHAR(50), blockchain_website_url VARCHAR(200), block_explorer_website VARCHAR(200), 
+	FOREIGN KEY (blockchain_website_url) REFERENCES websites(website_url) ON DELETE SET NULL ON UPDATE CASCADE, 
+	FOREIGN KEY(block_explorer_website) REFERENCES websites(website_url) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE wallets (wallet_id INT PRIMARY KEY, wallet_address VARCHAR(200), blockchain_id INT, possible_owner_name VARCHAR(200), UNIQUE(wallet_address, blockchain_id), 
+	FOREIGN KEY(blockchain_id) REFERENCES blockchains(blockchain_id) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE tokens (token_id INT PRIMARY KEY, token_address VARCHAR(200), blockchain_id INT, token_creator VARCHAR(100), token_description VARCHAR(1000), UNIQUE(token_address, blockchain_id),
+	FOREIGN KEY (blockchain_id) REFERENCES blockchains(blockchain_id) ON DELETE SET NULL ON UPDATE CASCADE);
+CREATE TABLE smart_contracts (smart_contract_id INT PRIMARY KEY, smart_contract_address VARCHAR(200), blockchain_id INT, smart_contract_creator VARCHAR(100), smart_contract_description VARCHAR(1000), 
+	UNIQUE(smart_contract_address, blockchain_id), 
+	FOREIGN KEY(blockchain_id) REFERENCES blockchains(blockchain_id) ON DELETE CASCADE ON UPDATE CASCADE);
 CREATE TABLE users (user_id INT PRIMARY KEY, user_name VARCHAR(150), email VARCHAR(150), join_date DATE, approved BOOL, notes VARCHAR(500), role VARCHAR(20));
-CREATE TABLE abuses (abuse_id INT PRIMARY KEY, report_date DATE, abuse_type_id INT, user_id INT, abuser_name VARCHAR(100), abuse_comment VARCHAR(10000), 
-FOREIGN KEY(abuse_type_id) REFERANCES abuse_types(abuse_type_id) ON DELETE SET NULL ON UPDATE CASCADE, 
-FOREIGN KEY(user_id) REFERANCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE);
---linking tables
-CREATE TABLE abuse_wallets (abuse_id INT, wallet_id INT, PRIMARY KEY (abuse_id, wallet_id)
-FOREIGN KEY(abuse_id) REFERANCES abuse(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
-FOREIGN KEY(wallet_id) REFERANCES wallets(wallet_id) ON DELETE CASCADE ON UPDATE CASCADE);
-CREATE TABLE abuse_tokens (abuse_id INT, token_id INT, PRIMARY KEY (abuse_id, token_id) 
-FOREIGN KEY(abuse_id) REFERANCES abuse(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
-FOREIGN KEY(token_id) REFERANCES tokens(token_id) ON DELETE CASCADE ON UPDATE CASCADE);
-CREATE TABLE abuse_smart_contract (abuse_id INT, smart_contract_id INT, PRIMARY KEY (abuse_id, smart_contract_id)
-FOREIGN KEY(abuse_id) REFERANCES abuse(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
-FOREIGN KEY(smart_contract_id) REFERANCES smart_contracts(smart_contract_id) ON DELETE CASCADE ON UPDATE CASCADE);
-CREATE TABLE abuse_websites (abuse_id INT, website_url VARCHAR(200), PRIMARY KEY (abuse_id, website_url)
-FOREIGN KEY(abuse_id) REFERANCES abuse(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
-FOREIGN KEY(website_url) REFERANCES websites(website_url) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE abuses (abuse_id INT PRIMARY KEY, report_date DATE, abuse_type_id INT, user_id INT, abuser_name VARCHAR(100), abuse_comment VARCHAR(10000), scam_id INT, 
+	FOREIGN KEY(abuse_type_id) REFERENCES abuse_types(abuse_type_id) ON DELETE SET NULL ON UPDATE CASCADE,
+	FOREIGN KEY(scam_id) REFERENCES large_scams(scam_id) ON DELETE SET NULL ON UPDATE CASCADE, 
+	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE SET NULL ON UPDATE CASCADE);
+
+CREATE TABLE abuse_wallets (abuse_id INT, wallet_id INT, PRIMARY KEY (abuse_id, wallet_id), 
+	FOREIGN KEY(abuse_id) REFERENCES abuses(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
+	FOREIGN KEY(wallet_id) REFERENCES wallets(wallet_id) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE abuse_tokens (abuse_id INT, token_id INT, PRIMARY KEY (abuse_id, token_id), 
+	FOREIGN KEY(abuse_id) REFERENCES abuses(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
+	FOREIGN KEY(token_id) REFERENCES tokens(token_id) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE abuse_smart_contract (abuse_id INT, smart_contract_id INT, PRIMARY KEY (abuse_id, smart_contract_id),
+	FOREIGN KEY(abuse_id) REFERENCES abuses(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
+	FOREIGN KEY(smart_contract_id) REFERENCES smart_contracts(smart_contract_id) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE abuse_websites (abuse_id INT, website_url VARCHAR(200), PRIMARY KEY (abuse_id, website_url),
+	FOREIGN KEY(abuse_id) REFERENCES abuses(abuse_id) ON DELETE CASCADE ON UPDATE CASCADE, 
+	FOREIGN KEY(website_url) REFERENCES websites(website_url) ON DELETE CASCADE ON UPDATE CASCADE);
