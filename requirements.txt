@@ -1,0 +1,6 @@
+streamlit==1.8.1
+pandas
+google-cloud-firestore==2.4.0
+streamlit-aggrid==0.2.3.post2
+Pyrebase4
+requests==2.27.1
